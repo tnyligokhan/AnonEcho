@@ -47,8 +47,6 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 
-app.post('/api/message/:username', messageLimiter, (req, res) => { 
-
 
 // --- GÜNCELLENDİ: Dinamik Mesaj Gönderme Rotası ---
 // Rota tanımına 'messageLimiter' ara katmanını (middleware) ekliyoruz.
