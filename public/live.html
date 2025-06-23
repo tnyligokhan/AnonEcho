@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Canlı Bildirimler</title>
+    <style>
+        /* --- TEMEL STİLLER VE ANİMASYON --- */
+
+        /* KRİTİK: Arka planı şeffaf yapar, böylece OBS'te sadece yazılar görünür. */
+        body {
+            background-color: transparent;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Kenarlarda kaydırma çubuğu çıkmasını engeller. */
+        }
+
+        /* Tüm bildirimlerin toplanacağı ana kapsayıcı. Ekranın altına yerleştirilmiştir. */
+        #notification-container {
+            position: absolute;
+            bottom: 5%; /* Ekranın altından %5 yukarıda */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column-reverse; /* Yeni mesajların alttan yukarı doğru eklenmesini sağlar */
+            align-items: center;
+        }
+
+        /* Tek bir mesaj kutusunun stili */
+        .message-box {
+            background-color: rgba(18, 18, 18, 0.85); /* Hafif yarı saydam siyah arka plan */
+            color: white;
+            padding: 15px 30px;
+            margin-top: 15px;
+            border-radius: 12px;
+            font-size: 28px; /* Okunaklı, büyük font */
+            font-weight: bold;
+            border-left: 6px solid #00a878; /* Sol kenarda Kick yeşili bir vurgu */
+            /* KRİTİK: Yazının her türlü arka plan üzerinde okunmasını sağlayan gölge */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 1);
+            /* Animasyonun adını, süresini ve çalışma şeklini belirtir */
+            animation: slideInFadeOut 5s ease-in-out forwards;
+        }
+        
+        /* 5 saniyelik animasyonun tanımı */
+        @keyframes slideInFadeOut {
+            0% { /* Başlangıç */
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            20% { /* Ekrana giriş ve tam görünür olma */
+                opacity: 1;
+                transform: translateY(0);
+            }
+            80% { /* Ekranda kalma süresinin sonu */
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% { /* Bitiş: Ekrandan çıkış */
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="notification-container">
+        </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Sunucu ile WebSocket bağlantısı kur.
+        const socket = io();
+        const container = document.getElementById('notification-container');
+        
+        // --- 1. DOĞRU ODAYA KATILMA ---
+        // URL'den yayıncı adını alıyoruz (örn: /canli/yayinadi).
+        const path = window.location.pathname.split('/');
+        const username = path[path.length - 1];
+
+        // Eğer bir kullanıcı adı varsa, sunucuya 'join-room' olayını göndererek
+        // bu kullanıcı adına ait odaya katılmak istediğimizi bildiriyoruz.
+        if (username) {
+            socket.emit('join-room', username);
+            console.log(`'${username}' odasına katılma isteği gönderildi.`);
+        }
+
+        // --- 2. YENİ MESAJLARI DİNLEME ---
+        // Sunucudan 'new-message' olayı geldiğinde bu fonksiyon çalışır.
+        socket.on('new-message', (message) => {
+            // Ekranda yeni bir mesaj kutusu oluşturup gösteren fonksiyonu çağır.
+            displayMessage(message);
+        });
+
+        function displayMessage(msg) {
+            // Yeni bir div elementi oluştur.
+            const messageElement = document.createElement('div');
+            // CSS stilini ve animasyonunu uygulamak için class'ını ayarla.
+            messageElement.className = 'message-box';
+            // İçeriğini gelen mesajla doldur.
+            messageElement.textContent = msg;
+
+            // Oluşturulan mesaj kutusunu ana kapsayıcının içine ekle.
+            container.appendChild(messageElement);
+
+            // KRİTİK: Animasyon süresiyle aynı olacak şekilde (5 saniye),
+            // mesaj kutusunu HTML'den kaldır. Bu, DOM'un şişmesini engeller.
+            setTimeout(() => {
+                messageElement.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

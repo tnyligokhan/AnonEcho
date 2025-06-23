@@ -1,0 +1,9 @@
+# Proje bağımlılıkları
+node_modules/
+
+# Ortam değişkenleri dosyası
+.env
+
+# İşletim sistemi özel dosyaları
+.DS_Store
+npm-debug.log

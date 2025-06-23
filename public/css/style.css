@@ -1,0 +1,37 @@
+/*
+    Bu dosya, Tailwind CSS'in üzerine yazılabilecek veya
+    Tailwind kullanılmayan sayfalarda geçerli olacak temel stilleri içerir.
+    Mevcut sayfalarımız (login, register, dashboard, message) stillerinin
+    %99'unu doğrudan HTML'deki Tailwind sınıflarından almaktadır.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+body {
+    /* Proje genelinde temel fontu belirliyoruz. Tailwind bunu zaten sıfırlar,
+       ancak bu bir "fallback" (yedek) veya temel ayar olarak düşünülebilir. */
+    font-family: 'Inter', sans-serif;
+
+    /* Tailwind'in bg-gray-900'üne benzer bir arka plan rengi */
+    background-color: #111827; 
+
+    /* Antialiasing, fontların daha pürüzsüz görünmesini sağlar. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Gelecekte eklenebilecek özel bir buton sınıfı örneği */
+.custom-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    background-color: #10B981; /* Yeşil tonu */
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.custom-button:hover {
+    background-color: #059669;
+}
