@@ -1,3 +1,5 @@
+// server.js dosyasının tam ve doğru hali
+
 require('dotenv').config();
 
 const express = require('express');
@@ -5,7 +7,8 @@ const http = require('http');
 const mongoose = require('mongoose');
 const { Server } = require("socket.io");
 const Filter = require('bad-words');
-const rateLimit = require('express-rate-limit'); // --- YENİ ---
+const rateLimit = require('express-rate-limit');
+const path = require('path'); // path modülünü ekliyoruz.
 
 const app = express();
 const server = http.createServer(app);
@@ -14,15 +17,13 @@ const filter = new Filter();
 
 const PORT = process.env.PORT || 3000;
 
-// --- YENİ: Spam/Flood Koruması İçin Rate Limiter Ayarları ---
 const messageLimiter = rateLimit({
-	windowMs: 15 * 1000, // 15 saniyelik bir zaman dilimi
-	max: 5, // Bu süre içinde her bir IP adresinden en fazla 5 istek gönderilebilir
-	message: { error: 'Çok fazla mesaj gönderme isteğinde bulundunuz. Lütfen 15 saniye bekleyin.' },
-	standardHeaders: true, // `RateLimit-*` başlıklarını yanıta ekler
-	legacyHeaders: false, // `X-RateLimit-*` başlıklarını devre dışı bırakır
+    windowMs: 15 * 1000,
+    max: 5,
+    message: { error: 'Çok fazla mesaj gönderme isteğinde bulundunuz. Lütfen 15 saniye bekleyin.' },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
-
 
 const connectDB = async () => {
     try {
@@ -35,22 +36,12 @@ const connectDB = async () => {
 };
 connectDB();
 
-
 app.use(express.json());
-app.use(express.static('public'));
-
+app.use(express.static(path.join(__dirname, 'public'))); // public klasörünü statik olarak sun.
 
 app.use('/api/auth', require('./routes/auth'));
 
-// Ana adrese (/) bir GET isteği geldiğinde, index.html dosyasını gönder.
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
-
-
-// --- GÜNCELLENDİ: Dinamik Mesaj Gönderme Rotası ---
-// Rota tanımına 'messageLimiter' ara katmanını (middleware) ekliyoruz.
-app.post('/api/message/:username', messageLimiter, (req, res) => { // --- YENİ --- (messageLimiter eklendi)
+app.post('/api/message/:username', messageLimiter, (req, res) => {
     const { username } = req.params;
     const { message } = req.body;
 
@@ -62,7 +53,6 @@ app.post('/api/message/:username', messageLimiter, (req, res) => { // --- YENİ 
     io.to(username).emit('new-message', cleanMessage);
     res.status(200).json({ success: 'Mesaj başarıyla gönderildi.' });
 });
-
 
 io.on('connection', (socket) => {
     console.log(`Bir istemci bağlandı: ${socket.id}`);
@@ -77,6 +67,18 @@ io.on('connection', (socket) => {
     });
 });
 
+// --- EKSİK OLAN KISIM BURASI ---
+// HTML Sayfalarını Sunma Rotaları
+// Bu bölüm, gelen tüm istekleri public klasöründeki ilgili HTML dosyasına yönlendirir.
+app.get('*', (req, res) => {
+    // İstenen yolun bir dosya uzantısı olup olmadığını kontrol et (örn: .css, .js)
+    if (req.path.includes('.')) {
+        res.status(404).send('Not found');
+    } else {
+        res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
+    }
+});
+// --- ROTA DÜZELTMESİ SONU ---
 
 server.listen(PORT, () => {
     console.log(`Sunucu http://localhost:${PORT} adresinde başarıyla başlatıldı.`);
