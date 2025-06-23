@@ -1,0 +1,34 @@
+{
+  "name": "anonecho",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+  "name": "kick-platformu",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bad-words": "^3.0.4"
+  }
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tnyligokhan/AnonEcho.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tnyligokhan/AnonEcho/issues"
+  },
+  "homepage": "https://github.com/tnyligokhan/AnonEcho#readme",
+  "description": ""
+}
