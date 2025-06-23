@@ -1,34 +1,27 @@
 {
   "name": "anonecho",
   "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-  "name": "kick-platformu",
-  "version": "1.0.0",
-  "description": "",
+  "description": "Kick yayınları için anonim bildirim platformu",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
+  "keywords": [
+    "kick",
+    "stream",
+    "notification"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bad-words": "^3.0.4",
     "bcryptjs": "^2.4.3",
-    "bad-words": "^3.0.4"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.3",
+    "socket.io": "^4.7.5"
   }
-},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tnyligokhan/AnonEcho.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/tnyligokhan/AnonEcho/issues"
-  },
-  "homepage": "https://github.com/tnyligokhan/AnonEcho#readme",
-  "description": ""
 }
