@@ -42,6 +42,13 @@ app.use(express.static('public'));
 
 app.use('/api/auth', require('./routes/auth'));
 
+// Ana adrese (/) bir GET isteği geldiğinde, index.html dosyasını gönder.
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
+app.post('/api/message/:username', messageLimiter, (req, res) => { 
+
 
 // --- GÜNCELLENDİ: Dinamik Mesaj Gönderme Rotası ---
 // Rota tanımına 'messageLimiter' ara katmanını (middleware) ekliyoruz.
