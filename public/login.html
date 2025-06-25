@@ -7,25 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white">
-
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
-            
             <h2 class="text-3xl font-bold text-center mb-8 text-teal-400">Hesabına Giriş Yap</h2>
 
-            <form id="loginForm" method="POST" novalidate>
+            <form id="loginForm" method="POST" action="/api/auth/login" novalidate>
                 <div class="mb-4">
                     <label for="username" class="block text-gray-300 mb-2 font-semibold">Kullanıcı Adı</label>
-                    <input type="text" id="username" name="username" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500 transition-colors" placeholder="kick-kullanici-adiniz" required>
+                    <input type="text" id="username" name="username" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500" placeholder="kick-kullanici-adiniz" required>
                 </div>
-
                 <div class="mb-6">
                     <label for="password" class="block text-gray-300 mb-2 font-semibold">Şifre</label>
-                    <input type="password" id="password" name="password" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500 transition-colors" placeholder="••••••••" required>
+                    <input type="password" id="password" name="password" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500" placeholder="••••••••" required>
                 </div>
-                
                 <div id="feedback" class="text-center mb-4 min-h-[1.5rem]"></div>
-
                 <button type="submit" id="submitButton" class="w-full bg-teal-600 text-white p-3 rounded font-bold hover:bg-teal-700 active:bg-teal-800 transition-all duration-200 transform active:scale-95">
                     Giriş Yap
                 </button>
@@ -37,7 +32,6 @@
             </p>
         </div>
     </div>
-    
     <script src="/js/auth.js"></script>
 </body>
 </html>

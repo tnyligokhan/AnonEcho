@@ -3,9 +3,8 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const crypto = require('crypto'); // YENİ: Güvenli anahtar üretimi için
+const crypto = require('crypto');
 
-// @route   POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -23,7 +22,6 @@ router.post('/register', async (req, res) => {
             username,
             email,
             password,
-            // YENİ: Kullanıcı için 32 karakterlik rastgele ve güvenli bir hex anahtarı oluştur.
             obsKey: crypto.randomBytes(16).toString('hex')
         });
 
@@ -40,8 +38,6 @@ router.post('/register', async (req, res) => {
     }
 });
 
-
-// @route   POST /api/auth/login
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -60,12 +56,18 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ msg: 'Hatalı kullanıcı adı veya şifre.' });
         }
 
+        // YENİ: Eski kullanıcılar için eksik OBS anahtarını kontrol et ve oluştur.
+        if (!user.obsKey) {
+            user.obsKey = crypto.randomBytes(16).toString('hex');
+            await user.save();
+            console.log(`Eski kullanıcı ${user.username} için yeni OBS anahtarı oluşturuldu.`);
+        }
+
         const payload = {
             user: {
                 id: user.id,
                 username: user.username,
-                // YENİ: Güvenli anahtarı JWT token'ın içine ekleyerek panele gönder.
-                obsKey: user.obsKey 
+                obsKey: user.obsKey
             }
         };
 

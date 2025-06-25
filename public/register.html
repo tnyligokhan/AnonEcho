@@ -10,27 +10,22 @@
 
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
-            
             <h2 class="text-3xl font-bold text-center mb-8 text-teal-400">Yeni Hesap Oluştur</h2>
 
-            <form id="registerForm" method="POST" novalidate>
+            <form id="registerForm" method="POST" action="/api/auth/register" novalidate>
                 <div class="mb-4">
                     <label for="username" class="block text-gray-300 mb-2 font-semibold">Kullanıcı Adı</label>
-                    <input type="text" id="username" name="username" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500 transition-colors" placeholder="kick-kullanici-adiniz" required>
+                    <input type="text" id="username" name="username" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500" placeholder="kick-kullanici-adiniz" required>
                 </div>
-
                 <div class="mb-4">
                     <label for="email" class="block text-gray-300 mb-2 font-semibold">E-posta</label>
-                    <input type="email" id="email" name="email" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500 transition-colors" placeholder="email@adresiniz.com" required>
+                    <input type="email" id="email" name="email" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500" placeholder="email@adresiniz.com" required>
                 </div>
-
                 <div class="mb-6">
                     <label for="password" class="block text-gray-300 mb-2 font-semibold">Şifre</label>
-                    <input type="password" id="password" name="password" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500 transition-colors" placeholder="••••••••" required>
+                    <input type="password" id="password" name="password" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500" placeholder="••••••••" required>
                 </div>
-                
                 <div id="feedback" class="text-center mb-4 min-h-[1.5rem]"></div>
-
                 <button type="submit" id="submitButton" class="w-full bg-teal-600 text-white p-3 rounded font-bold hover:bg-teal-700 active:bg-teal-800 transition-all duration-200 transform active:scale-95">
                     Hesap Oluştur
                 </button>
@@ -42,7 +37,6 @@
             </p>
         </div>
     </div>
-    
     <script src="/js/auth.js"></script>
 </body>
 </html>
