@@ -3,52 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yayıncı Paneli - Kick Bildirim Platformu</title>
+    <title>Yayıncı Paneli - AnonEcho</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-900 text-white font-sans">
 
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-3xl">
-            
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold text-teal-400">
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl w-full max-w-4xl mx-auto mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                <h2 class="text-3xl font-bold text-teal-400 mb-2 sm:mb-0">
                     Hoş Geldin, <span id="welcome-username">Yayıncı</span>!
                 </h2>
-                <button id="logoutButton" class="bg-red-600 text-white px-4 py-2 rounded font-semibold hover:bg-red-700 transition-colors">
+                <button id="logoutButton" class="bg-red-600 text-white px-4 py-2 rounded font-semibold hover:bg-red-700 transition-colors w-full sm:w-auto">
                     Çıkış Yap
                 </button>
             </div>
 
-            <p class="text-gray-400 mb-8">Aşağıdaki linkler sana özel olarak oluşturulmuştur. Bu linkleri kullanarak izleyicilerinden anonim mesajlar alabilirsin.</p>
-
-            <div class="bg-gray-700 p-6 rounded-lg mb-6">
-                <h3 class="text-xl font-semibold mb-2 text-white">İzleyici Mesaj Linki</h3>
-                <p class="text-gray-300 mb-4">Bu linki izleyicilerinle paylaş. Kick paneline, chatbot komutuna veya sosyal medyana ekleyebilirsin. Bu adrese giren herkes yayınına mesaj gönderebilir.</p>
-                <div class="flex items-center bg-gray-900 p-3 rounded-md">
-                    <code id="message-link" class="text-teal-300 font-mono flex-grow overflow-x-auto">Yükleniyor...</code>
-                    <button id="copy-message-link" class="ml-4 bg-gray-600 hover:bg-teal-600 p-2 rounded transition-colors" title="Linki Kopyala">
-                        <i class="fas fa-copy"></i>
-                    </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-2 text-white">İzleyici Lobi Linki</h3>
+                    <p class="text-gray-400 text-sm mb-3">Bu linki izleyicilerinle paylaşarak soru göndermelerini ve oylama yapmalarını sağla.</p>
+                    <div class="flex items-center bg-gray-900 p-2 rounded-md">
+                        <code id="message-link" class="text-teal-300 font-mono text-sm flex-grow overflow-x-auto">Yükleniyor...</code>
+                        <button data-copy-target="message-link" class="copy-btn ml-2 bg-gray-600 hover:bg-teal-600 p-2 rounded transition-colors" title="Linki Kopyala">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                 <div class="bg-red-900 bg-opacity-30 border border-red-500 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-2 text-red-400"><i class="fas fa-exclamation-triangle"></i> OBS Tarayıcı Linki</h3>
+                    <p class="text-gray-400 text-sm mb-3 font-bold">BU LİNKİ KİMSEYLE PAYLAŞMA! Bu link, bildirimlerin görüneceği ekrandır.</p>
+                    <div class="flex items-center bg-gray-900 p-2 rounded-md">
+                        <code id="live-link" class="text-red-400 font-mono text-sm flex-grow overflow-x-auto">Yükleniyor...</code>
+                        <button data-copy-target="live-link" class="copy-btn ml-2 bg-gray-600 hover:bg-red-500 p-2 rounded transition-colors" title="Linki Kopyala">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <div class="bg-red-900 bg-opacity-30 border border-red-500 p-6 rounded-lg">
-                <h3 class="text-xl font-semibold mb-2 text-red-400"><i class="fas fa-exclamation-triangle"></i> OBS Tarayıcı Kaynağı Linki</h3>
-                <p class="text-gray-300 mb-4 font-bold">BU LİNKİ KESİNLİKLE KİMSEYLE PAYLAŞMA! Bu link, bildirimlerin görüneceği ekrandır.</p>
-                <p class="text-gray-300 mb-4">Bu linki OBS'te yeni bir "Tarayıcı" (Browser Source) kaynağı oluşturarak URL kısmına yapıştır. Önerilen boyutlar: Genişlik: `1920`, Yükseklik: `1080`.</p>
-                <div class="flex items-center bg-gray-900 p-3 rounded-md">
-                    <code id="live-link" class="text-red-400 font-mono flex-grow overflow-x-auto">Yükleniyor...</code>
-                    <button id="copy-live-link" class="ml-4 bg-gray-600 hover:bg-red-500 p-2 rounded transition-colors" title="Linki Kopyala">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-            </div>
-
         </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl w-full max-w-4xl mx-auto">
+            <h3 class="text-2xl font-bold text-amber-400 mb-4">Soru Havuzu</h3>
+            <div id="questions-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <p id="loading-questions" class="text-center text-gray-500">Sorular yükleniyor...</p>
+            </div>
+        </div>
+
     </div>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/js/dashboard.js"></script>
 </body>
 </html>
