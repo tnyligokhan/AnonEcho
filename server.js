@@ -6,8 +6,8 @@ const mongoose = require('mongoose');
 const { Server } = require("socket.io");
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const User = require('./models/User'); // User modelini dahil ediyoruz
-const Message = require('./models/Message'); // YENİ: Message modelini dahil ediyoruz
+const User = require('./models/User');
+const Message = require('./models/Message');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,7 +16,7 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 const messageLimiter = rateLimit({
-    windowMs: 10 * 1000, // 10 saniye
+    windowMs: 10 * 1000,
     max: 5,
     message: { error: 'Çok fazla istekte bulundunuz. Lütfen biraz bekleyin.' },
     standardHeaders: true,
@@ -37,13 +37,9 @@ connectDB();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Rotaları
 app.use('/api/auth', require('./routes/auth'));
-// YENİ: Mesajlarla ilgili tüm API isteklerini yönetecek yeni rotayı ekliyoruz.
-app.use('/api/messages', require('./routes/messages')); 
+app.use('/api/messages', require('./routes/messages'));
 
-// ESKİ MESAJ GÖNDERME ROTASI GÜNCELLENDİ
-// Artık mesajlar doğrudan ekrana değil, veritabanına kaydedilecek.
 app.post('/api/message/:username', messageLimiter, async (req, res) => {
     const { username } = req.params;
     const { message } = req.body;
@@ -64,11 +60,7 @@ app.post('/api/message/:username', messageLimiter, async (req, res) => {
         });
 
         await newMessage.save();
-
-        // YENİ: Mesaj kaydedildikten sonra yayıncının paneline (dashboard) anlık bildirim gönderiyoruz.
-        // Bu olay, panelde yeni bir sorunun belirmesini tetikleyecek.
         io.to(streamer.username).emit('new-message-received', newMessage);
-
         res.status(201).json({ success: 'Mesaj başarıyla gönderildi.' });
 
     } catch (error) {
@@ -77,20 +69,25 @@ app.post('/api/message/:username', messageLimiter, async (req, res) => {
     }
 });
 
-
-// Socket.IO Bağlantı Mantığı
 io.on('connection', (socket) => {
-    // 'join-room' olayı artık hem yayıncı paneli hem de OBS ekranı için kullanılacak.
-    // Panel bu odaya katılarak yeni mesaj bildirimlerini ve diğer güncellemeleri alacak.
     socket.on('join-room', (roomName) => {
         socket.join(roomName);
-        console.log(`İstemci ${socket.id}, "${roomName}" adlı odaya katıldı.`);
+        console.log(`Pano ${socket.id}, "${roomName}" adlı odaya katıldı.`);
     });
     
-    // YENİ: Yayıncının "Soruyu Ekrana Gönder" butonuna bastığında bu olay çalışacak.
+    socket.on('join-live-room', async (obsKey) => {
+        try {
+            const user = await User.findOne({ obsKey: obsKey });
+            if (user) {
+                socket.join(user.username);
+                console.log(`OBS ${socket.id}, "${user.username}" adlı odaya anahtarla katıldı.`);
+            }
+        } catch (error) {
+            console.error('OBS odaya katılma hatası:', error);
+        }
+    });
+    
     socket.on('display-message', (data) => {
-        // İlgili yayıncının odasına 'show-on-stream' olayını iletiyoruz.
-        // Sadece OBS ekranı (live.html) bu olayı dinleyip soruyu ekranda gösterecek.
         io.to(data.username).emit('show-on-stream', data.message);
     });
     
@@ -99,23 +96,35 @@ io.on('connection', (socket) => {
     });
 });
 
-
-// --- SAYFA SUNMA ROTALARI ---
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
 });
 
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'dashboard.html'));
-});
-
 app.get('/mesaj/:username', (req, res) => {
-    // YENİ: Mesaj gönderme sayfası artık oylama özelliğini içerecek.
     res.sendFile(path.resolve(__dirname, 'public', 'lobby.html'));
 });
 
-app.get('/canli/:username', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'live.html'));
+app.get('/canli/:obsKey', async (req, res) => {
+    try {
+        const user = await User.findOne({ obsKey: req.params.obsKey });
+        if (user) {
+            res.sendFile(path.resolve(__dirname, 'public', 'live.html'));
+        } else {
+            res.status(404).send('Geçersiz OBS Anahtarı');
+        }
+    } catch (error) {
+        res.status(500).send('Sunucu Hatası');
+    }
+});
+
+app.get('/:page', (req, res, next) => {
+    const page = req.params.page;
+    const filePath = path.resolve(__dirname, 'public', `${page}.html`);
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            next();
+        }
+    });
 });
 
 server.listen(PORT, () => {

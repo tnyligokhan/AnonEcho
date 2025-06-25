@@ -13,7 +13,7 @@
             
             <h2 class="text-3xl font-bold text-center mb-8 text-teal-400">Hesabına Giriş Yap</h2>
 
-            <form id="loginForm" novalidate>
+            <form id="loginForm" method="POST" novalidate>
                 <div class="mb-4">
                     <label for="username" class="block text-gray-300 mb-2 font-semibold">Kullanıcı Adı</label>
                     <input type="text" id="username" name="username" class="w-full p-3 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-teal-500 transition-colors" placeholder="kick-kullanici-adiniz" required>
@@ -26,7 +26,6 @@
                 
                 <div id="feedback" class="text-center mb-4 min-h-[1.5rem]"></div>
 
-
                 <button type="submit" id="submitButton" class="w-full bg-teal-600 text-white p-3 rounded font-bold hover:bg-teal-700 active:bg-teal-800 transition-all duration-200 transform active:scale-95">
                     Giriş Yap
                 </button>
@@ -34,7 +33,7 @@
 
             <p class="text-center mt-6 text-gray-400">
                 Hesabın yok mu?
-                <a href="/register.html" class="text-teal-400 hover:underline font-semibold">Kayıt Ol</a>
+                <a href="/register" class="text-teal-400 hover:underline font-semibold">Kayıt Ol</a>
             </p>
         </div>
     </div>
