@@ -47,57 +47,69 @@
 </head>
 <body>
 
-    <div id="notification-container">
-        </div>
+    <div id="notification-container"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const container = document.getElementById('notification-container');
         
+        // URL'den kullanıcı adı yerine güvenli anahtarı alıyoruz.
         const path = window.location.pathname.split('/');
-        const username = path[path.length - 1];
+        const obsKey = path[path.length - 1];
 
-        if (username) {
-            socket.emit('join-room', username);
-            console.log(`'${username}' odasına katıldı ve dinlemeye başladı.`);
+        if (obsKey) {
+            // Sunucuya kendimizi güvenli anahtar ile tanıtıyoruz.
+            socket.emit('join-live-room', obsKey);
+            console.log(`Sunucuya '${obsKey}' anahtarıyla katılma isteği gönderildi.`);
         }
 
-        // YENİ: Sadece 'show-on-stream' olayını dinle.
+        // Panelden gelen 'show-on-stream' olayını dinle.
         socket.on('show-on-stream', (messageText) => {
-            displayMessage(messageText);
-        });
-
-        function displayMessage(msg) {
-            // Önceki mesajı (varsa) kaldır.
-            // Bu, ekranda aynı anda sadece bir sorunun görünmesini sağlar.
+            // Ekranda önceki bir mesaj varsa, onu kaldırıp yenisini göster.
             const existingMessage = container.querySelector('.message-box');
             if (existingMessage) {
                 existingMessage.classList.remove('visible');
                 // Animasyonun bitmesi için kısa bir süre bekle
                 setTimeout(() => {
-                    existingMessage.remove();
-                    // Eskisi kaldırıldıktan sonra yenisini oluştur.
-                    createNewMessage(msg);
+                    if(existingMessage) existingMessage.remove();
+                    displayAndSpeakMessage(messageText);
                 }, 500); 
             } else {
-                // Ekranda mesaj yoksa doğrudan yenisini oluştur.
-                createNewMessage(msg);
+                // Ekranda mesaj yoksa doğrudan yenisini göster.
+                displayAndSpeakMessage(messageText);
             }
-        }
+        });
 
-        function createNewMessage(msg) {
+        function displayAndSpeakMessage(msg) {
+            // Mesaj kutusunu oluştur ve ekrana ekle
             const messageElement = document.createElement('div');
             messageElement.className = 'message-box';
             messageElement.textContent = msg;
-            
             container.appendChild(messageElement);
 
-            // Element eklendikten hemen sonra 'visible' class'ını ekleyerek
-            // CSS animasyonunu tetikle.
+            // Görünür yap (CSS animasyonunu tetikle)
             setTimeout(() => {
                 messageElement.classList.add('visible');
-            }, 50); // Tarayıcının elementi fark etmesi için çok kısa bir gecikme.
+            }, 50);
+
+            // Sesli okuma işlemini başlat
+            const utterance = new SpeechSynthesisUtterance(msg);
+            utterance.lang = 'tr-TR'; // Türkçe okumasını sağla
+            utterance.rate = 0.9;     // Okuma hızını ayarla
+
+            // Okuma bittiğinde çalışacak olay
+            utterance.onend = () => {
+                // Okuma bittikten 3 saniye sonra mesajı gizle
+                setTimeout(() => {
+                    messageElement.classList.remove('visible');
+                    // Gizleme animasyonu bittikten sonra elementi DOM'dan tamamen kaldır
+                    setTimeout(() => messageElement.remove(), 500);
+                }, 3000); // 3 saniye bekleme süresi
+            };
+            
+            // Konuşmayı başlat
+            window.speechSynthesis.speak(utterance);
         }
     </script>
 </body>

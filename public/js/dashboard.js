@@ -7,9 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let username = 'Yayıncı';
+    let obsKey = ''; // obsKey için değişken
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         username = payload.user.username;
+        obsKey = payload.user.obsKey; // Token'dan obsKey'i al
     } catch (e) {
         console.error('Geçersiz token:', e);
         localStorage.removeItem('token');
@@ -21,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('welcome-username').textContent = username;
     const origin = window.location.origin;
     const messageUrl = `${origin}/mesaj/${username}`;
-    const liveUrl = `${origin}/canli/${username}`;
+    // OBS linki artık kullanıcı adı yerine güvenli anahtarı kullanacak.
+    const liveUrl = `${origin}/canli/${obsKey}`; 
     document.getElementById('message-link').textContent = messageUrl;
     document.getElementById('live-link').textContent = liveUrl;
 
@@ -43,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 4. YENİ: SORU HAVUZU MANTIĞI ---
+    // --- 4. SORU HAVUZU MANTIĞI ---
     const socket = io();
     const questionsContainer = document.getElementById('questions-container');
     const loadingQuestions = document.getElementById('loading-questions');
@@ -68,14 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fas fa-eye mr-1"></i> Göster
                 </button>
                 <button data-id="${question._id}" class="read-btn flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded transition-colors text-sm">
-                    <i class="fas fa-check mr-1"></i> Oku
+                    <i class="fas fa-check mr-1"></i> Okundu İşaretle
                 </button>
                 <button data-id="${question._id}" class="delete-btn flex-1 sm:flex-initial bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded transition-colors text-sm">
                     <i class="fas fa-trash mr-1"></i> Sil
                 </button>
             </div>
         `;
-        // Yeni soruları listenin başına ekle
         questionsContainer.prepend(questionElement);
     };
 
@@ -83,15 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`/api/messages/${username}`);
             const questions = await response.json();
-            loadingQuestions.style.display = 'none';
+            
             if (questions.length === 0) {
                  questionsContainer.innerHTML = '<p class="text-center text-gray-500">Henüz soru havuzunda bir şey yok.</p>';
             } else {
+                 questionsContainer.innerHTML = ''; // Önceki içeriği temizle
                  questions.forEach(renderQuestion);
             }
         } catch (error) {
             console.error('Sorular yüklenemedi:', error);
-            loadingQuestions.textContent = 'Sorular yüklenirken bir hata oluştu.';
+            questionsContainer.innerHTML = '<p class="text-center text-red-500">Sorular yüklenirken bir hata oluştu.</p>';
         }
     };
     
@@ -117,12 +120,22 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (readBtn) {
             const messageId = readBtn.dataset.id;
             const response = await fetch(`/api/messages/read/${messageId}`, { method: 'PATCH' });
-            if(response.ok) document.getElementById(`question-${messageId}`).remove();
+            if(response.ok) {
+                const elementToRemove = document.getElementById(`question-${messageId}`);
+                if (elementToRemove) elementToRemove.remove();
+            }
         } 
         else if (deleteBtn) {
             const messageId = deleteBtn.dataset.id;
-            const response = await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
-            if(response.ok) document.getElementById(`question-${messageId}`).remove();
+            // Onay mekanizması
+            const isConfirmed = window.confirm('Bu soruyu kalıcı olarak silmek istediğinizden emin misiniz?');
+            if (isConfirmed) {
+                const response = await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
+                if(response.ok) {
+                    const elementToRemove = document.getElementById(`question-${messageId}`);
+                    if (elementToRemove) elementToRemove.remove();
+                }
+            }
         }
     });
 

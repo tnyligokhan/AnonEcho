@@ -1,106 +1,88 @@
-// DOM'un (yani sayfanın HTML yapısının) tamamen yüklendiğinden emin olduktan sonra kodu çalıştır.
-document.addEventListener('DOMContentLoaded', () => {
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const crypto = require('crypto'); // YENİ: Güvenli anahtar üretimi için
 
-    // Sayfadaki formları ve elementleri bulmaya çalış.
-    const registerForm = document.getElementById('registerForm');
-    const loginForm = document.getElementById('loginForm');
-    
-    // --- KAYIT FORMU MANTIĞI ---
-    if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
-            // Formun varsayılan olarak sayfayı yenileme davranışını engelle.
-            e.preventDefault();
+// @route   POST /api/auth/register
+router.post('/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
 
-            // Elementleri seç
-            const feedbackDiv = document.getElementById('feedback');
-            const submitButton = document.getElementById('submitButton');
-            const username = document.getElementById('username').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+        if (!username || !email || !password) {
+            return res.status(400).json({ msg: 'Lütfen tüm alanları doldurun.' });
+        }
 
-            // Butonu devre dışı bırak ve metnini değiştirerek kullanıcıya işlem yapıldığını bildir.
-            submitButton.disabled = true;
-            submitButton.textContent = 'Hesap Oluşturuluyor...';
-            feedbackDiv.textContent = ''; // Eski mesajları temizle
+        let user = await User.findOne({ $or: [{ email }, { username }] });
+        if (user) {
+            return res.status(400).json({ msg: 'Bu kullanıcı adı veya e-posta zaten kullanılıyor.' });
+        }
 
-            try {
-                // Backend'deki /api/auth/register endpoint'ine fetch ile POST isteği gönder.
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    // Form verilerini JSON formatında body'e ekle.
-                    body: JSON.stringify({ username, email, password })
-                });
-
-                // Sunucudan gelen cevabı JSON olarak işle.
-                const data = await response.json();
-
-                if (response.ok) {
-                    // İstek başarılıysa (HTTP 2xx durum kodları)
-                    feedbackDiv.textContent = data.msg;
-                    feedbackDiv.className = 'text-center mb-4 min-h-[1.5rem] text-green-400';
-                    registerForm.reset(); // Formu temizle
-                } else {
-                    // İstek başarısızsa (HTTP 4xx veya 5xx durum kodları)
-                    throw new Error(data.msg || 'Bir hata oluştu.');
-                }
-            } catch (error) {
-                // Ağ hatası veya backend'den gelen hata mesajını göster.
-                feedbackDiv.textContent = error.message;
-                feedbackDiv.className = 'text-center mb-4 min-h-[1.5rem] text-red-400';
-            } finally {
-                // İşlem başarılı da olsa, başarısız da olsa butonu tekrar aktif et.
-                submitButton.disabled = false;
-                submitButton.textContent = 'Hesap Oluştur';
-            }
+        user = new User({
+            username,
+            email,
+            password,
+            // YENİ: Kullanıcı için 32 karakterlik rastgele ve güvenli bir hex anahtarı oluştur.
+            obsKey: crypto.randomBytes(16).toString('hex')
         });
-    }
 
-    // --- GİRİŞ FORMU MANTIĞI ---
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
 
-            const feedbackDiv = document.getElementById('feedback');
-            const submitButton = document.getElementById('submitButton');
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            submitButton.disabled = true;
-            submitButton.textContent = 'Giriş Yapılıyor...';
-            feedbackDiv.textContent = ''; // Eski mesajları temizle
+        await user.save();
 
-            try {
-                // Backend'deki /api/auth/login endpoint'ine POST isteği gönder.
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+        res.status(201).json({ msg: 'Kayıt başarılı! Şimdi giriş yapabilirsiniz.' });
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    // KRİTİK ADIM: Giriş başarılıysa...
-                    // 1. Sunucudan gelen token'ı al.
-                    const { token } = data;
-                    // 2. Token'ı tarayıcının yerel deposuna (localStorage) kaydet.
-                    // Bu sayede kullanıcı sayfayı yenilese bile giriş yapmış olarak kalır.
-                    localStorage.setItem('token', token);
-                    // 3. Kullanıcıyı yayıncı paneline yönlendir.
-                    window.location.href = '/dashboard.html';
-                } else {
-                    throw new Error(data.msg || 'Bir hata oluştu.');
-                }
-            } catch (error) {
-                feedbackDiv.textContent = error.message;
-                feedbackDiv.className = 'text-center mb-4 min-h-[1.5rem] text-red-400';
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Giriş Yap';
-            }
-        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Sunucu Hatası');
     }
 });
+
+
+// @route   POST /api/auth/login
+router.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ msg: 'Lütfen tüm alanları doldurun.' });
+        }
+
+        const user = await User.findOne({ username: username.toLowerCase() });
+        if (!user) {
+            return res.status(400).json({ msg: 'Hatalı kullanıcı adı veya şifre.' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Hatalı kullanıcı adı veya şifre.' });
+        }
+
+        const payload = {
+            user: {
+                id: user.id,
+                username: user.username,
+                // YENİ: Güvenli anahtarı JWT token'ın içine ekleyerek panele gönder.
+                obsKey: user.obsKey 
+            }
+        };
+
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({ token });
+            }
+        );
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Sunucu Hatası');
+    }
+});
+
+module.exports = router;
